@@ -269,4 +269,60 @@ Contributions, bug reports, and feature requests are welcome!
 
 ---
 
-Designed with ❤️ by [MR-PR0G](https://github.com/MR-PR0G)
+### Designed with ❤️ by [MR-PR0G](https://github.com/MR-PR0G)
+
+---
+## 🏗️ Project Architecture & Developer Guide
+
+### 📂 Directory Structure
+```
+telegram-channel-cloner/
+├── config.py           # Master configuration parameters & settings
+├── main.py             # CLI entry point and execution coordinator
+├── requirements.txt    # Python dependencies
+├── LICENSE             # MIT License file
+├── README.md           # Documentation
+└── src/
+    ├── __init__.py          # Package initializer
+    ├── authentication.py    # Telethon client session & 2FA authentication
+    ├── cloner.py            # Core async cloning engine & live Rich CLI interface
+    ├── dialog_search.py     # Dialog caching, filtering & interactive CLI search
+    ├── logger.py            # Loguru logger setup
+    ├── media.py             # Media classification and album (grouped_id) helpers
+    ├── message_handler.py   # Message processing, text cleaning & metadata mapping
+    ├── progress.py          # State tracking, progress persistence & crash recovery
+    ├── sender.py            # Safe transmission wrappers (FloodWait handling, topic routing)
+    └── utils.py             # Text replacement, date filters, and delay jitter
+```
+
+---
+
+### 🔄 System Architecture & Data Flow
+
+1. **Initialization (`main.py` & `authentication.py`)**:
+   The CLI boots up, initializes logging via `logger.py`, and authenticates the user using Telethon.
+
+2. **Dialog Discovery (`dialog_search.py`)**:
+   Scans all user dialogs in a single pass with a live `Rich` progress bar, caching chats and `Saved Messages` for immediate indexed search.
+
+3. **Batch Orchestration (`cloner.py`)**:
+   Retrieves history chronologically in chunked batches (`get_messages`), accumulates media groups (albums), and updates a live dashboard.
+
+4. **Message Transformation (`message_handler.py` & `utils.py`)**:
+   Evaluates date bounds, file size constraints, and media rules. Applies text modifications (username handles, regex patterns, custom headers/footers).
+
+5. **Resilient Transmission (`sender.py`)**:
+   Dispatches messages to the destination entity or specific forum topic. Handles rate-limiting (`FloodWaitError`) gracefully and maps original message IDs to cloned message IDs to preserve reply chains.
+
+6. **State Persistence (`progress.py`)**:
+   Saves progress to `progress.json` after every successfully copied item for instant session recovery.
+
+---
+
+### 🤝 Contributing Guidelines
+
+1. **Fork the Repository**: Create your own fork of the project on GitHub.
+2. **Create a Feature Branch**: `git checkout -b feature/YourFeatureName`
+3. **Commit Your Changes**: Maintain clean, atomic commits describing your updates.
+4. **Push to Branch**: `git push origin feature/YourFeatureName`
+5. **Open a Pull Request**: Submit your PR with a clear summary of modifications or improvements.
