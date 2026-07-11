@@ -71,7 +71,7 @@ source venv/bin/activate
 ```
 #### 3. Install Required Dependencies
 ```Bash
-pip install --upgrade pip
+pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
 ### 🪟 Step 2B: Installation on Windows
@@ -95,8 +95,7 @@ venv\Scripts\activate
 ```
 #### 3. Install Required Dependencies
 ```DOS
-
-python -m pip install --upgrade pip
+pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
 ### ⚙️ Step 3: Configure config.py
