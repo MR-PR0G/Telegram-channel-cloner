@@ -2,11 +2,17 @@
 
 An ultra-resilient, production-grade asynchronous CLI application built with **Python 3.12+** and **Telethon** to seamlessly clone message histories from any accessible Telegram channel, group, or **Saved Messages** to a destination channel/group.
 
----
-
 ## ⚡ Quick Overview
 
 Cloning massive Telegram channels (10,000+ to 50,000+ messages) often fails due to proxy disconnects, IP changes, rate limits, and frozen sockets. **Telegram Channel Clone Theta** is engineered from the ground up to handle unstable networks with **zero freezing**, **smart chunked pagination**, **auto-reconnection**, and **resumable progress tracking**.
+
+<p align="center">
+  <img src="Demos/1.png" alt="Header Banner" width="100%" style="max-width: 100%; height: auto;" />
+</p>
+
+<p align="center">
+  <img src="Demos/2.png" alt="Dashboard Preview" width="100%" style="max-width: 100%; height: auto;" />
+</p>
 
 ## 🌟 Key Features
 
