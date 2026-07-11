@@ -273,8 +273,6 @@ Contributions, bug reports, and feature requests are welcome!
 - Give a ⭐️ **Star** if this project helped you!
 - Feel free to open an **Issue** or submit a **Pull Request**.
 
----
-
 ### Designed with ❤️ by [MR-PR0G](https://github.com/MR-PR0G)
 
 ---
@@ -323,12 +321,3 @@ telegram-channel-cloner/
 6. **State Persistence (`progress.py`)**:
    Saves progress to `progress.json` after every successfully copied item for instant session recovery.
 
----
-
-### 🤝 Contributing Guidelines
-
-1. **Fork the Repository**: Create your own fork of the project on GitHub.
-2. **Create a Feature Branch**: `git checkout -b feature/YourFeatureName`
-3. **Commit Your Changes**: Maintain clean, atomic commits describing your updates.
-4. **Push to Branch**: `git push origin feature/YourFeatureName`
-5. **Open a Pull Request**: Submit your PR with a clear summary of modifications or improvements.
