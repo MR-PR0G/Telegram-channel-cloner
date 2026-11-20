@@ -51,3 +51,4 @@ failed_messages.json
 .DS_Store
 Thumbs.db
 Demos/*.jpg
+temp_downloads/

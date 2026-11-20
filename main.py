@@ -70,8 +70,8 @@ async def async_main() -> None:
             if not source_dialog or not dest_dialog:
                 console.print("[cyan]Select channels for retrying failed messages:[/cyan]")
                 cached_dialogs = await fetch_cached_dialogs(client)
-                source_dialog = await search_dialogs(cached_dialogs, "Select source channel: ")
-                dest_dialog = await search_dialogs(cached_dialogs, "Select destination channel: ")
+                source_dialog = await search_dialogs(client, cached_dialogs, "Select source channel: ")
+                dest_dialog = await search_dialogs(client, cached_dialogs, "Select destination channel: ")
 
             src_title = get_entity_display_name(source_dialog)
             dst_title = get_entity_display_name(dest_dialog)
@@ -118,8 +118,8 @@ async def async_main() -> None:
     if not use_resume:
         clear_progress()
         cached_dialogs = await fetch_cached_dialogs(client)
-        source_dialog = await search_dialogs(cached_dialogs, "Search source channel: ")
-        dest_dialog = await search_dialogs(cached_dialogs, "Search destination channel: ")
+        source_dialog = await search_dialogs(client, cached_dialogs, "Search source channel: ")
+        dest_dialog = await search_dialogs(client, cached_dialogs, "Search destination channel: ")
 
     source_title = get_entity_display_name(source_dialog)
     dest_title = get_entity_display_name(dest_dialog)

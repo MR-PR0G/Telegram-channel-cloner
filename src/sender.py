@@ -1,6 +1,7 @@
+import os
 import asyncio
 from telethon import TelegramClient
-from telethon.errors import FloodWaitError
+from telethon.errors import FloodWaitError, ChatForwardsRestrictedError
 import config
 from src.utils import apply_delay, truncate_caption
 from src.logger import get_logger
@@ -27,6 +28,42 @@ async def send_message_safe(client: TelegramClient, entity, **kwargs) -> any:
             if retries > config.MAX_RETRIES:
                 raise e
             await asyncio.sleep(1.0)
+
+async def _download_and_send_fallback(client: TelegramClient, entity, file, **kwargs) -> any:
+    logger.info("Source channel has content protection enabled. Downloading and uploading...")
+    if isinstance(file, list):
+        downloaded = []
+        try:
+            for item in file:
+                path = await client.download_media(item, file=config.TEMP_DOWNLOAD_DIR)
+                if path:
+                    downloaded.append(path)
+            if downloaded:
+                sent_msg = await client.send_file(entity, downloaded, **kwargs)
+                await apply_delay()
+                return sent_msg
+        finally:
+            for p in downloaded:
+                if os.path.exists(p):
+                    try:
+                        os.remove(p)
+                    except OSError:
+                        pass
+    else:
+        path = None
+        try:
+            path = await client.download_media(file, file=config.TEMP_DOWNLOAD_DIR)
+            if path:
+                sent_msg = await client.send_file(entity, path, **kwargs)
+                await apply_delay()
+                return sent_msg
+        finally:
+            if path and os.path.exists(path):
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
+    return None
 
 async def send_file_safe(client: TelegramClient, entity, file, **kwargs) -> any:
     if config.DESTINATION_TOPIC_ID and ('reply_to' not in kwargs or kwargs.get('reply_to') is None):
@@ -57,6 +94,15 @@ async def send_file_safe(client: TelegramClient, entity, file, **kwargs) -> any:
             logger.warning(f"FloodWait encountered during file send: sleeping for {e.seconds} seconds.")
             await asyncio.sleep(e.seconds)
             continue
+        except ChatForwardsRestrictedError:
+            if config.BYPASS_RESTRICTED_MEDIA:
+                fallback_msg = await _download_and_send_fallback(client, entity, file, **kwargs)
+                if fallback_msg:
+                    return fallback_msg
+            retries += 1
+            if retries > config.MAX_RETRIES:
+                raise
+            await asyncio.sleep(1.0)
         except Exception as e:
             retries += 1
             logger.error(f"File send error (attempt {retries}/{config.MAX_RETRIES}): {e}")

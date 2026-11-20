@@ -46,26 +46,30 @@ async def process_single_message(
     try:
         sent_msg = None
 
-        if message.media:
-            if media_type in ["photo", "video", "voice", "audio", "gif", "sticker", "document", "round_video"]:
-                sent_msg = await send_file_safe(
-                    client, destination_id, message.media,
-                    caption=processed_text, reply_to=reply_to_id
-                )
-            elif media_type in ["location", "contact"]:
-                sent_msg = await send_message_safe(
-                    client, destination_id, message=message.media, reply_to=reply_to_id
-                )
-            else:
-                sent_msg = await send_message_safe(
-                    client, destination_id, message=processed_text, reply_to=reply_to_id
-                )
+        if media_type in ["photo", "video", "voice", "audio", "gif", "sticker", "document", "round_video"]:
+            sent_msg = await send_file_safe(
+                client, destination_id, message.media,
+                caption=processed_text, reply_to=reply_to_id
+            )
+        elif media_type == "poll" and hasattr(message.media, "poll"):
+            sent_msg = await send_message_safe(
+                client, destination_id, file=message.media.poll, reply_to=reply_to_id
+            )
+        elif media_type == "dice":
+            sent_msg = await send_message_safe(
+                client, destination_id, file=message.media, reply_to=reply_to_id
+            )
+        elif media_type in ["location", "contact"]:
+            sent_msg = await send_message_safe(
+                client, destination_id, message=message.media, reply_to=reply_to_id
+            )
         else:
             if processed_text or message.entities:
                 entities_to_pass = message.entities if (processed_text == raw_text) else None
                 sent_msg = await send_message_safe(
                     client, destination_id, message=processed_text,
-                    formatting_entities=entities_to_pass, reply_to=reply_to_id
+                    formatting_entities=entities_to_pass, reply_to=reply_to_id,
+                    link_preview=True
                 )
 
         if sent_msg:

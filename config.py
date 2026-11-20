@@ -35,6 +35,7 @@ BATCH_COOLDOWN_SECONDS: float = 0.0
 
 MAX_CAPTION_LENGTH: int = 1024
 SPLIT_LONG_CAPTION: bool = True
+BYPASS_RESTRICTED_MEDIA: bool = True
 
 ENABLE_TEXT_REPLACEMENT: bool = False
 AUTO_REPLACE_USERNAMES: bool = False
@@ -45,7 +46,7 @@ CUSTOM_HEADER: str = ""
 CUSTOM_FOOTER: str = ""
 
 ALLOWED_MEDIA_TYPES: List[str] = [
-    "text", "photo", "video", "voice", "audio", "gif", "sticker", "document", "location", "contact", "round_video"
+    "text", "webpage", "photo", "video", "voice", "audio", "gif", "sticker", "document", "location", "contact", "round_video", "poll", "dice"
 ]
 MAX_FILE_SIZE_MB: float = 0.0
 
@@ -69,6 +70,8 @@ SESSION_DIR: str = "session"
 PROGRESS_FILE: str = "progress.json"
 FAILED_LOG_FILE: str = "failed_messages.json"
 LOG_DIR: str = "logs"
+TEMP_DOWNLOAD_DIR: str = "temp_downloads"
 
 os.makedirs(SESSION_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
+os.makedirs(TEMP_DOWNLOAD_DIR, exist_ok=True)
