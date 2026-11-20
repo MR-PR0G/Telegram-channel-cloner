@@ -1,10 +1,24 @@
 import os
 from typing import Literal, List, Optional
 
-API_ID: int = int(os.getenv("TELEGRAM_API_ID", "24292412"))
-API_HASH: str = os.getenv("TELEGRAM_API_HASH", "91554b7905061c7e056bc852f80b6914")
+def _load_env_file():
+    if os.path.exists(".env"):
+        try:
+            with open(".env", "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, val = line.split("=", 1)
+                        os.environ.setdefault(key.strip(), val.strip().strip('"').strip("'"))
+        except Exception:
+            pass
 
-USE_PROXY: bool = os.getenv("USE_PROXY", "True").lower() in ("1", "true", "yes")
+_load_env_file()
+
+API_ID: int = int(os.getenv("TELEGRAM_API_ID", "0"))
+API_HASH: str = os.getenv("TELEGRAM_API_HASH", "")
+
+USE_PROXY: bool = os.getenv("USE_PROXY", "False").lower() in ("1", "true", "yes")
 PROXY_TYPE: Literal["HTTP", "SOCKS5", "SOCKS4"] = os.getenv("PROXY_TYPE", "HTTP").upper()
 PROXY_HOST: str = os.getenv("PROXY_HOST", "127.0.0.1")
 PROXY_PORT: int = int(os.getenv("PROXY_PORT", "2080"))
