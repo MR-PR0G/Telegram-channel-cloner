@@ -1,124 +1,154 @@
-# Telegram Channel Cloner
+<p align="center">
+  <img src="Demos/1.png" alt="Telegram Channel Cloner Banner" width="100%" />
+</p>
 
-A resilient, asynchronous CLI tool built with Python and Telethon to copy message history from any accessible Telegram channel, group, or Saved Messages to a destination chat.
+# 🚀 Telegram Channel Cloner `v0.1.0`
 
-Designed for large channel migrations where network interruptions, Telegram rate limits, and broken sockets often cause standard scripts to fail.
+[![Python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Telethon](https://img.shields.io/badge/Telethon-v1.35%2B-2CA5E0?logo=telegram&logoColor=white)](https://github.com/LonamiWebs/Telethon)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/Tests-12%2F12%20Passing-brightgreen.svg)](tests/)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-success)](#)
 
----
-
-## Features
-
-- **Sequential Replication**: Clones messages in chronological order (oldest to newest).
-- **Auto-Retry Engine**: Re-attempts skipped or failed messages directly from `failed_messages.json` (`--retry-failed`) without re-cloning previous messages.
-- **Caption Truncation & Overflow Chaining**: Safely cuts media captions at Telegram's 1024-character limit and sends remaining text as a chained reply.
-- **Batch Cooldown**: Configurable sleep periods between batches (e.g. 60s pause every 100 messages) to avoid sliding-window `FLOOD_WAIT` restrictions.
-- **Fast Remote Sizing**: Resolves total channel message count in a single API call instead of scanning the full history.
-- **Connection Recovery**: Automatic socket reconnect and state preservation on IP or proxy drops.
-- **Media & Album Support**: Handles single media, documents, voice, stickers, and grouped media albums across chunks without fragmentation.
-- **Filtering**: Filter by allowed media types, max file size in MB, date range, or message ID boundaries.
-- **Text & Branding Cleanup**: Optional regex cleanup, username handle replacement, and custom signatures.
-- **Proxy Support**: Works with HTTP, SOCKS5, and SOCKS4 proxies.
-- **Interactive UI**: Clean Rich terminal dashboard showing real-time speed, progress percentage, and ETA.
+A high-performance, resilient asynchronous Telegram cloner engineered to migrate channel history, group archives, and Saved Messages with zero socket freezes, automated error recovery, and rate-limit shields.
 
 ---
 
-## Installation
+## 🌟 What's New in v0.1.0
 
-### Requirements
-- Python 3.12+
-- Telegram `API_ID` and `API_HASH` from [my.telegram.org](https://my.telegram.org)
+This release introduces major stability enhancements and addresses community feature requests:
 
+- 🔁 **Failed Messages Auto-Retry Engine ([#1](https://github.com/MR-PR0G/Telegram-channel-cloner/issues/1))**: Retry only failed messages logged in `failed_messages.json` with `--retry-failed` without duplicating previously copied messages or resetting progress.
+- ✂️ **Smart Caption Truncation & Chaining**: Eliminates `Caption too long` exceptions by automatically adhering to Telegram's 1024-character caption limit for media. Any overflow text is seamlessly dispatched as a chained reply.
+- ☕ **Batch Cooldown Shield**: Added batch resting periods (`--batch-size` and `--batch-cooldown`) to protect accounts from sliding-window `FLOOD_WAIT` penalties during massive migrations (10,000+ messages).
+- ⚡ **Instant Remote Sizing**: Resolves total channel message count in a single round-trip API call instead of scanning the full history.
+- 🌐 **Expanded Proxy Support**: Native compatibility with **HTTP**, **SOCKS5**, and **SOCKS4** proxies.
+- 🧪 **Automated Test Suite**: Integrated `pytest` test suite covering progress tracking, text transformations, caption safety, and message pipelines.
+
+---
+
+<p align="center">
+  <img src="Demos/2.png" alt="Dashboard Preview" width="100%" />
+</p>
+
+---
+
+## ✨ Core Features
+
+- 🔄 **Strict Chronological Replication**: Clones from oldest to newest, preserving conversational flow and historical context.
+- 🛡️ **Zero-Freezing Socket Recovery**: Automatically re-establishes connections on IP changes or network hiccups without hanging.
+- 💬 **Saved Messages Integration**: Move posts directly to or from your personal "Saved Messages" using simple keywords.
+- 📂 **Full Media & Album Support**: Handles single media, documents, voice notes, stickers, round video notes, and grouped albums across pagination boundaries without splitting.
+- 🔍 **Single-Pass Dialog Search**: Fast cached search across accessible chats and channels.
+- ✏️ **Automated Content Cleaning**: Auto-replace source channel handles (`@old` → `@new`), strip promotional patterns, or inject custom headers/footers.
+- 🎛️ **Granular Filtering**: Filter by allowed media types, maximum file size in MB, date range, or message ID limits.
+- 📌 **Pins & Topics**: Replicates pinned messages and supports Supergroup Forum Topics (Threads).
+- 📊 **Real-Time Terminal Dashboard**: Clean, live Rich UI displaying speed (msg/s), completion percentage, elapsed time, and dynamic ETA.
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+- **Python 3.12+**
+- Telegram credentials (`API_ID` & `API_HASH`) from [my.telegram.org](https://my.telegram.org)
+
+### 2. Setup
 ```bash
+# Clone the repository
 git clone https://github.com/MR-PR0G/Telegram-channel-cloner.git
 cd Telegram-channel-cloner
 
+# Create and activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
+# Install dependencies
 pip install -r requirements.txt
 ```
 
----
-
-## Usage
-
-### Interactive Mode
-Launch the wizard to search and select source and destination channels:
+### 3. Run
 ```bash
 python main.py
 ```
 
-### Command-Line Options
+---
 
-| Flag | Argument | Description |
+## 🕹️ CLI Usage & Flags
+
+| Flag | Parameter | Description |
 |---|---|---|
-| `--retry-failed` | - | Process failed messages from `failed_messages.json` |
-| `--resume` | - | Auto-resume previous session without confirmation |
-| `--no-resume` | - | Start new session, discarding previous progress |
-| `--batch-size` | `int` | Message count per batch before cooldown pause |
-| `--batch-cooldown` | `float` | Pause duration in seconds after each batch |
-| `--min-id` | `int` | Start cloning from this minimum message ID |
-| `--max-id` | `int` | Stop cloning at this maximum message ID |
+| `--retry-failed` | None | Process failed items from `failed_messages.json` directly |
+| `--resume` | None | Automatically resume previous session without prompting |
+| `--no-resume` | None | Discard saved state and start a fresh cloning task |
+| `--batch-size` | `int` | Number of messages copied before taking a rest |
+| `--batch-cooldown` | `float` | Rest duration (in seconds) between batches |
+| `--min-id` | `int` | Lowest message ID boundary |
+| `--max-id` | `int` | Highest message ID boundary |
 
-#### Examples
-Retry failed messages from a previous run:
-```bash
-python main.py --retry-failed
-```
+### Common Workflows
 
-Clone with a 60-second cooldown every 100 messages:
-```bash
-python main.py --batch-size 100 --batch-cooldown 60
-```
+- **Retry Failed Messages Only**:
+  ```bash
+  python main.py --retry-failed
+  ```
 
-Resume interrupted session:
-```bash
-python main.py --resume
-```
+- **Clone Large Channels with Cooldown (e.g., 60s rest every 100 messages)**:
+  ```bash
+  python main.py --batch-size 100 --batch-cooldown 60
+  ```
+
+- **Unattended Resume**:
+  ```bash
+  python main.py --resume
+  ```
 
 ---
 
-## Configuration
+## ⚙️ Configuration (`config.py` & `.env`)
 
-Settings can be managed in `config.py` or via environment variables (`.env`):
+You can configure settings via environment variables (in a `.env` file) or directly inside `config.py`:
 
 ```python
-# Credentials
+# API Credentials
 API_ID = 0
 API_HASH = ""
 
-# Proxy (HTTP, SOCKS5, SOCKS4)
+# Proxy Configuration
 USE_PROXY = False
-PROXY_TYPE = "HTTP"
+PROXY_TYPE = "HTTP"       # HTTP, SOCKS5, or SOCKS4
 PROXY_HOST = "127.0.0.1"
 PROXY_PORT = 2080
 
-# Delays & Human Behavior
+# Anti-Flood & Delays
 ENABLE_RANDOM_DELAY = True
 MIN_DELAY = 0.3
 MAX_DELAY = 1.0
 
-# Rate-Limit Shield
+# Batch Rate-Limiting
 BATCH_SIZE = 100
-BATCH_COOLDOWN_SECONDS = 0.0  # Set > 0 to enable batch resting
+BATCH_COOLDOWN_SECONDS = 0.0   # Set > 0 (e.g. 60.0) to pause between batches
 
-# Caption Handling
+# Caption Safety
 MAX_CAPTION_LENGTH = 1024
-SPLIT_LONG_CAPTION = True  # Send text overflow as reply
+SPLIT_LONG_CAPTION = True      # Send overflow caption as reply
 ```
 
 ---
 
-## Development & Tests
+## 🧪 Automated Testing
 
-Run test suite:
+Run the full test suite with:
+
 ```bash
 pip install -r requirements-dev.txt
-pytest tests/
+pytest -v tests/
 ```
+
+All 12 unit and integration tests validate progress persistence, text processors, caption boundary splits, and message routing.
 
 ---
 
-## License
+## 📄 License
 
-MIT License. See [LICENSE](LICENSE) for details.
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
