@@ -7,8 +7,6 @@
 [![Python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Telethon](https://img.shields.io/badge/Telethon-v1.35%2B-2CA5E0?logo=telegram&logoColor=white)](https://github.com/LonamiWebs/Telethon)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-12%2F12%20Passing-brightgreen.svg)](tests/)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-success)](#)
 
 A high-performance, resilient asynchronous Telegram cloner engineered to migrate channel history, group archives, and Saved Messages with zero socket freezes, automated error recovery, and rate-limit shields.
 
@@ -23,7 +21,6 @@ This release introduces major stability enhancements and addresses community fea
 - ☕ **Batch Cooldown Shield**: Added batch resting periods (`--batch-size` and `--batch-cooldown`) to protect accounts from sliding-window `FLOOD_WAIT` penalties during massive migrations (10,000+ messages).
 - ⚡ **Instant Remote Sizing**: Resolves total channel message count in a single round-trip API call instead of scanning the full history.
 - 🌐 **Expanded Proxy Support**: Native compatibility with **HTTP**, **SOCKS5**, and **SOCKS4** proxies.
-- 🧪 **Automated Test Suite**: Integrated `pytest` test suite covering progress tracking, text transformations, caption safety, and message pipelines.
 
 ---
 
@@ -136,16 +133,12 @@ SPLIT_LONG_CAPTION = True      # Send overflow caption as reply
 
 ---
 
-## 🧪 Automated Testing
-
-Run the full test suite with:
+## 🧪 Testing
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -v tests/
+pytest
 ```
-
-All 12 unit and integration tests validate progress persistence, text processors, caption boundary splits, and message routing.
 
 ---
 
