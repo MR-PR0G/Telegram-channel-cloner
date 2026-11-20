@@ -1,4 +1,4 @@
-# 🚀 Telegram Channel Clone Theta (v0.1.0)
+# 🚀 Telegram Channel Clone Theta (v0.1.2)
 
 An ultra-resilient, production-grade asynchronous CLI application built with **Python 3.12+** and **Telethon** to seamlessly clone message histories from any accessible Telegram channel, group, or **Saved Messages** to a destination channel/group.
 
@@ -16,8 +16,12 @@ Cloning massive Telegram channels (10,000+ to 50,000+ messages) often fails due 
 
 ---
 
-## 🌟 What's New in v0.1.0
+## 🌟 What's New in v0.1.2
 
+- 🛡️ **Protected Content Bypass (`ChatForwardsRestrictedError`)**: Channels with "Restrict saving content" enabled no longer fail. The engine automatically downloads the media to temporary storage, re-uploads it cleanly to the destination, and purges local temp files immediately.
+- 🔗 **Smart Link Preview Handling (`MessageMediaWebPage`)**: Webpage previews and shared URLs are no longer misidentified as unknown media. All links, articles, and preview metadata are preserved and transmitted cleanly.
+- 🎯 **Direct Input Resolution**: Paste channel IDs (`-100...`), `@username`, or `t.me/...` invite links directly into the interactive prompt without needing them to appear in cached dialogs.
+- 📊 **Polls & Interactive Media**: Native cloning support for Telegram polls (`MessageMediaPoll`) and dice animations (`MessageMediaDice`).
 - 🔁 **Failed Messages Auto-Retry Engine ([#1](https://github.com/MR-PR0G/Telegram-channel-cloner/issues/1))**: Dedicated `--retry-failed` mode to re-attempt failed messages logged in `failed_messages.json` without re-cloning already copied messages or resetting checkpoints.
 - ✂️ **Smart Caption Truncation & Chaining**: Automatically conforms to Telegram's 1024-character caption limits on media. Excess text is sent as a chained reply to ensure no content is lost while preventing `Caption too long` exceptions.
 - ☕ **Batch Pause & Rate-Limit Shield**: Configurable batch resting periods (`--batch-size` and `--batch-cooldown`) to protect accounts from sliding-window `FLOOD_WAIT` penalties during massive channel migrations.
@@ -30,7 +34,7 @@ Cloning massive Telegram channels (10,000+ to 50,000+ messages) often fails due 
 ## 🌟 Key Features
 
 - 🔄 **100% Chronological Execution**: Copies messages strictly from oldest to newest, preserving historical sequence perfectly.
-- 🛡️ **Zero-Freezing Network Resilience**: Socket recovery mechanism that auto-reconnects on IP changes or proxy drops without freezing.
+- 🛡️ **Zero-Freezing Resilience & Protected Content Bypass**: Socket recovery mechanism that auto-reconnects on IP changes or proxy drops, paired with an automated download-and-upload pipeline to clone forward-restricted channels with content protection enabled.
 - 🌐 **Multi-Proxy Support**: Built-in HTTP, SOCKS5, and SOCKS4 proxy support powered by `python-socks`.
 - 💬 **Saved Messages Integration**: Clone directly to or from your personal "Saved Messages" using simple keywords (`saved`).
 - 🔍 **Single-Pass Fast Search**: Caches all accessible dialogs once with a live scanning progress bar for instant searching.
