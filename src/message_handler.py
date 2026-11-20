@@ -1,7 +1,3 @@
-# Copyright (c) 2026 https://github.com/MR-PR0G
-# Licensed under the MIT License. See LICENSE file in the project root.
-# SPDX-License-Identifier: MIT
-
 from telethon import TelegramClient
 from telethon.tl.types import MessageService
 import config
@@ -21,11 +17,9 @@ async def process_single_message(
     dest_username: str = ""
 ) -> bool:
     if isinstance(message, MessageService):
-        logger.info(f"Skipping service message ID: {message.id}")
         return False
 
     if not is_date_in_range(message.date):
-        logger.info(f"Skipping message ID {message.id} due to date filter constraint.")
         return False
 
     if config.MIN_MSG_ID > 0 and message.id < config.MIN_MSG_ID:
@@ -35,11 +29,11 @@ async def process_single_message(
 
     media_type, file_size = determine_media_attributes(message.media)
     if not is_media_allowed(media_type, file_size):
-        logger.info(f"Skipping message ID {message.id} due to media filter ({media_type}, size: {file_size}).")
         return False
 
+    raw_text = message.message or ""
     processed_text = process_text_content(
-        message.message, 
+        raw_text, 
         source_username=source_username, 
         dest_username=dest_username
     )
@@ -68,21 +62,23 @@ async def process_single_message(
                 )
         else:
             if processed_text or message.entities:
+                entities_to_pass = message.entities if (processed_text == raw_text) else None
                 sent_msg = await send_message_safe(
                     client, destination_id, message=processed_text,
-                    formatting_entities=message.entities, reply_to=reply_to_id
+                    formatting_entities=entities_to_pass, reply_to=reply_to_id
                 )
 
         if sent_msg:
-            reply_mapping[message.id] = sent_msg.id
+            first_msg_id = sent_msg[0].id if isinstance(sent_msg, list) else sent_msg.id
+            reply_mapping[message.id] = first_msg_id
 
             if getattr(message, 'pinned', False) and config.SYNC_PINNED_MESSAGES:
-                await pin_message_safe(client, destination_id, sent_msg.id)
+                await pin_message_safe(client, destination_id, first_msg_id)
 
             return True
 
         return False
 
     except Exception as e:
-        logger.error(f"Critical mapping crash dealing with message ID {message.id}: {e}")
+        logger.error(f"Failed processing message ID {message.id}: {e}")
         raise e

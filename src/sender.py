@@ -1,56 +1,65 @@
-# Copyright (c) 2026 https://github.com/MR-PR0G
-# Licensed under the MIT License. See LICENSE file in the project root.
-# SPDX-License-Identifier: MIT
-
 import asyncio
 from telethon import TelegramClient
 from telethon.errors import FloodWaitError
 import config
-from src.utils import apply_delay
+from src.utils import apply_delay, truncate_caption
 from src.logger import get_logger
 
 logger = get_logger()
 
 async def send_message_safe(client: TelegramClient, entity, **kwargs) -> any:
-    retries = 0
     if config.DESTINATION_TOPIC_ID and ('reply_to' not in kwargs or kwargs.get('reply_to') is None):
         kwargs['reply_to'] = config.DESTINATION_TOPIC_ID
 
+    retries = 0
     while retries <= config.MAX_RETRIES:
         try:
             sent_msg = await client.send_message(entity, **kwargs)
             await apply_delay()
             return sent_msg
         except FloodWaitError as e:
-            logger.warning(f"FloodWait encountered: Sleeping for {e.seconds} seconds.")
-            print(f"\n[Flood Wait] Sleeping {e.seconds} seconds...")
+            logger.warning(f"FloodWait encountered: sleeping for {e.seconds} seconds.")
             await asyncio.sleep(e.seconds)
             continue
         except Exception as e:
             retries += 1
-            logger.error(f"Error executing message transmission (Attempt {retries}/{config.MAX_RETRIES}): {e}")
+            logger.error(f"Message send error (attempt {retries}/{config.MAX_RETRIES}): {e}")
             if retries > config.MAX_RETRIES:
                 raise e
             await asyncio.sleep(1.0)
 
 async def send_file_safe(client: TelegramClient, entity, file, **kwargs) -> any:
-    retries = 0
     if config.DESTINATION_TOPIC_ID and ('reply_to' not in kwargs or kwargs.get('reply_to') is None):
         kwargs['reply_to'] = config.DESTINATION_TOPIC_ID
 
+    overflow_text = None
+    caption = kwargs.get("caption")
+    if caption and len(caption) > config.MAX_CAPTION_LENGTH:
+        trimmed_caption, overflow_text = truncate_caption(caption, config.MAX_CAPTION_LENGTH)
+        kwargs["caption"] = trimmed_caption
+
+    retries = 0
     while retries <= config.MAX_RETRIES:
         try:
             sent_msg = await client.send_file(entity, file, **kwargs)
             await apply_delay()
+
+            if overflow_text and config.SPLIT_LONG_CAPTION and sent_msg:
+                first_msg_id = sent_msg[0].id if isinstance(sent_msg, list) else sent_msg.id
+                try:
+                    await client.send_message(entity, message=overflow_text, reply_to=first_msg_id)
+                    await apply_delay()
+                except Exception as ex:
+                    logger.warning(f"Failed sending caption overflow text: {ex}")
+
             return sent_msg
         except FloodWaitError as e:
-            logger.warning(f"FloodWait encountered during file transmission: Sleeping for {e.seconds} seconds.")
-            print(f"\n[Flood Wait] Sleeping {e.seconds} seconds...")
+            logger.warning(f"FloodWait encountered during file send: sleeping for {e.seconds} seconds.")
             await asyncio.sleep(e.seconds)
             continue
         except Exception as e:
             retries += 1
-            logger.error(f"Error executing file transmission (Attempt {retries}/{config.MAX_RETRIES}): {e}")
+            logger.error(f"File send error (attempt {retries}/{config.MAX_RETRIES}): {e}")
             if retries > config.MAX_RETRIES:
                 raise e
             await asyncio.sleep(1.0)

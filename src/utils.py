@@ -1,16 +1,12 @@
-# Copyright (c) 2026 https://github.com/MR-PR0G
-# Licensed under the MIT License. See LICENSE file in the project root.
-# SPDX-License-Identifier: MIT
-
 import random
 import asyncio
 import re
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Tuple
 import config
 
 def format_timedelta(seconds: float) -> str:
-    hours, remainder = divmod(int(seconds), 3600)
+    hours, remainder = divmod(int(max(0.0, seconds)), 3600)
     minutes, secs = divmod(remainder, 60)
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
@@ -20,6 +16,21 @@ async def apply_delay() -> None:
     else:
         delay = config.DEFAULT_DELAY
     await asyncio.sleep(delay)
+
+def truncate_caption(text: Optional[str], max_length: int = 1024) -> Tuple[Optional[str], Optional[str]]:
+    if not text or len(text) <= max_length:
+        return text, None
+
+    cutoff = max_length
+    split_pos = text.rfind("\n", 0, cutoff)
+    if split_pos == -1 or split_pos < (max_length // 2):
+        split_pos = text.rfind(" ", 0, cutoff)
+    if split_pos == -1 or split_pos < (max_length // 2):
+        split_pos = cutoff
+
+    head = text[:split_pos].rstrip()
+    tail = text[split_pos:].lstrip()
+    return head, tail
 
 def process_text_content(
     text: Optional[str], 
@@ -51,7 +62,7 @@ def process_text_content(
 
     return modified.strip()
 
-def is_date_in_range(msg_date: datetime) -> bool:
+def is_date_in_range(msg_date: Optional[datetime]) -> bool:
     if not msg_date:
         return True
 
@@ -65,7 +76,9 @@ def is_date_in_range(msg_date: datetime) -> bool:
 
     if config.END_DATE:
         try:
-            end_dt = datetime.strptime(config.END_DATE, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            end_dt = datetime.strptime(config.END_DATE, "%Y-%m-%d").replace(
+                hour=23, minute=59, second=59, microsecond=999999, tzinfo=timezone.utc
+            )
             if msg_date > end_dt:
                 return False
         except ValueError:
@@ -83,3 +96,41 @@ def is_media_allowed(media_type: str, file_size_bytes: int = 0) -> bool:
             return False
 
     return True
+
+def get_entity_display_name(entity) -> str:
+    if not entity:
+        return "Unknown"
+
+    if getattr(entity, 'is_self', False) is True:
+        return "Saved Messages"
+
+    actual = getattr(entity, 'entity', None) or entity
+
+    if getattr(actual, 'is_self', False) is True:
+        return "Saved Messages"
+
+    title = getattr(actual, 'title', None)
+    if title:
+        return str(title)
+
+    first_name = getattr(actual, 'first_name', None) or ''
+    last_name = getattr(actual, 'last_name', None) or ''
+    full_name = f"{first_name} {last_name}".strip()
+    if full_name:
+        return full_name
+
+    username = getattr(actual, 'username', None)
+    if username:
+        return f"@{username}"
+
+    name = getattr(entity, 'name', None)
+    if name:
+        return str(name)
+
+    return str(getattr(entity, 'id', 'Unknown'))
+
+def get_entity_username(entity) -> str:
+    if not entity:
+        return ""
+    actual = getattr(entity, 'entity', entity)
+    return getattr(actual, 'username', '') or ''
